@@ -1,5 +1,3 @@
-" ~/.vim/pack/plugins/start/buffer-manager/plugin/buffer-manager.vim
-
 " Check if a buffer is modified
 function! IsBufferModified(buf)
   return getbufvar(a:buf, '&modified') == 1
@@ -28,7 +26,7 @@ function! SwitchAndCloseBuffer(force)
 endfunction
 
 " Handle buffer close with options to save, discard, or cancel
-function! HandleBufferClose()
+function! HandleCloseBuffer()
   " Get the list of buffers and the current buffer
   let buffers = filter(getbufinfo(), 'v:val.listed')
   let current_buf = bufnr('%')
@@ -71,4 +69,4 @@ function! HandleBufferClose()
 endfunction
 
 " Create a Vim command to trigger the HandleBufferClose function
-command! HandleBufferClose call HandleBufferClose()
+command! HandleCloseBuffer call HandleCloseBuffer()

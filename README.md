@@ -29,7 +29,7 @@ If you're using another plugin manager, please refer to its respective documenta
 After installing the plugin, you can use the following command to safely close your buffers:
 
 ```vim
-:HandleBufferClose
+:HandleCloseBuffer
 ```
 
 This command provides an interactive prompt if there are unsaved changes, allowing you to save, discard, or cancel the close operation. It ensures that your split layout remains intact, no matter how you choose to handle the buffer.
@@ -39,7 +39,7 @@ This command provides an interactive prompt if there are unsaved changes, allowi
 You are free to define convenient mappings to make using the plugin even easier. For example:
 
 ```vim
-nnoremap <leader>c :HandleBufferClose<cr>
+nnoremap <leader>c :HandleCloseBuffer<cr>
 ```
 Feel free to customize the mapping to fit your preferred keybindings.
 
