@@ -30,8 +30,16 @@ endfunction
 
 " Helper function to switch to the previous buffer and close the current one
 function! SwitchAndCloseBuffer(force)
-  " Switch to the previous buffer
-  execute 'bprevious'
+  " Check if the alternate buffer exists
+  if bufnr('#') != -1
+    " Switch to the alternate buffer
+    execute 'buffer#'
+  else
+    " Switch to the previous buffer in the buffer list
+    execute 'bprevious'
+  endif
+
+  " Close the current buffer (which is now the previous one)
   if a:force
     " Force close the previously active buffer
     execute 'bdelete!#'
