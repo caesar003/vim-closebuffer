@@ -10,19 +10,28 @@ When you close a buffer in Vim using the default commands, Vim can sometimes clo
 
 ## Installation
 
-To install the **Vim CloseBuffer** plugin, use [vim-plug](https://github.com/junegunn/vim-plug). Add the following line to your `.vimrc`:
+To install the Vim CloseBuffer plugin, you can use any popular Vim plugin manager. For instance, if you're using [vim-plug](https://github.com/junegunn/vim-plug), add the following line to your .vimrc:
 
 ```vim
 Plug 'caesar003/vim-closebuffer'
 ```
 
-Then, run the following command in Vim to install the plugin:
+Then, install the plugin by running:
 
 ```vim
 :PlugInstall
 ```
 
-If you're using another plugin manager, please refer to its respective documentation for installation instructions.
+Alternatively, if you’re using a different plugin manager like [lazy.nvim](https://github.com/folke/lazy.nvim), [Vundle](https://github.com/wbthomason/packer.nvim), or [packer.nvim](https://github.com/VundleVim/Vundle.vim), refer to its specific documentation to install the plugin.
+
+Here’s how you might add it with lazy.nvim:
+
+```lua
+ {
+  -- other plugins
+  { 'caesar003/vim-closebuffer' },
+}
+```
 
 ## Usage
 
@@ -41,6 +50,7 @@ You are free to define convenient mappings to make using the plugin even easier.
 ```vim
 nnoremap <leader>c :HandleCloseBuffer<cr>
 ```
+
 Feel free to customize the mapping to fit your preferred keybindings.
 
 ## Contributing
@@ -50,4 +60,3 @@ If you find any issues or have suggestions for improvements, feel free to open a
 ## License
 
 This plugin is open-source and licensed under the [MIT License](LICENSE).
-

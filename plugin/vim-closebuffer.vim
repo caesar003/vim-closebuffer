@@ -19,17 +19,13 @@ function! IsBufferModified(buf)
   return getbufvar(a:buf, '&modified') == 1
 endfunction
 
-" Helper function to close the current buffer
-function! CloseBuffer(force)
-  if a:force
-    execute 'bdelete!'
-  else
-    execute 'bdelete'
-  endif
+" Force close the specified buffer
+function! ForceCloseBuffer(buffer_number)
+  execute 'bdelete!' a:buffer_number
 endfunction
 
-" Helper function to switch to the previous buffer and close the current one
-function! SwitchAndCloseBuffer(force)
+" Helper function to switch to the previous buffer
+function! SwitchBuffer()
   " Check if the alternate buffer exists
   if bufnr('#') != -1
     " Switch to the alternate buffer
@@ -37,15 +33,6 @@ function! SwitchAndCloseBuffer(force)
   else
     " Switch to the previous buffer in the buffer list
     execute 'bprevious'
-  endif
-
-  " Close the current buffer (which is now the previous one)
-  if a:force
-    " Force close the previously active buffer
-    execute 'bdelete!#'
-  else
-    " Close the previously active buffer
-    execute 'bdelete#'
   endif
 endfunction
 
@@ -61,42 +48,51 @@ function! HandleCloseBuffer()
   let current_buf = bufnr('%')
   let current_buf_name = bufname(current_buf) != '' ? bufname(current_buf) : '[Unnamed]'
 
-  " Check if the current buffer is modified
-  if IsBufferModified(current_buf)
-    echo "Current buffer has unsaved changes. Do you want to save it? [y]es, [n]o, [C]ancel: "
-    let choice = nr2char(getchar())
-
-    if tolower(choice) == s:SAVE_OPTION
-      " Save the buffer
-      execute 'write'  
-      if len(buffers) > 1
-        call SwitchAndCloseBuffer(0)
-      else
-        call CloseBuffer(0)
-      endif
-      echohl InfoMsg | echom current_buf_name . " saved and closed." | echohl None
-
-    elseif tolower(choice) == s:DONT_SAVE_OPTION
-      if len(buffers) > 1
-        call SwitchAndCloseBuffer(1)
-      else
-        call CloseBuffer(1)
-      endif
-      echohl WarningMsg | echom current_buf_name . " closed without saving." | echohl None
-
-    else
-      echohl InfoMsg | echom "Buffer close canceled." | echohl None
-    endif
-
-  else
+  " Check if the current buffer is not modified
+  if !IsBufferModified(current_buf)
+    " Close the buffer immediately since it's not modified
     if len(buffers) > 1
-      call SwitchAndCloseBuffer(0)
+      call SwitchBuffer()
+      call ForceCloseBuffer('#')
     else
-      call CloseBuffer(0)
+      call ForceCloseBuffer('%')
     endif
     echohl InfoMsg | echom current_buf_name . " closed." | echohl None
+    return
   endif
+
+  " Prompt the user if the buffer has unsaved changes
+  echo "Current buffer has unsaved changes. Do you want to save it? [y]es, [n]o, [C]ancel: "
+  let choice = nr2char(getchar())
+
+  if tolower(choice) == s:SAVE_OPTION
+    " Save the buffer
+    execute 'write'
+    if len(buffers) > 1
+      call SwitchBuffer()
+      call ForceCloseBuffer('#')
+    else
+      call ForceCloseBuffer('%')
+    endif
+    echohl InfoMsg | echom current_buf_name . " saved and closed." | echohl None
+    return
+  endif
+
+  if tolower(choice) == s:DONT_SAVE_OPTION
+    if len(buffers) > 1
+      call SwitchBuffer()
+      call ForceCloseBuffer('#')
+    else
+      call ForceCloseBuffer('%')
+    endif
+    echohl WarningMsg | echom current_buf_name . " closed without saving." | echohl None
+    return
+  endif
+
+  " If user chooses to cancel
+  echohl InfoMsg | echom "Buffer close canceled." | echohl None
 endfunction
 
-" Create a Vim command to trigger the HandleBufferClose function
+" Create a Vim command to trigger the HandleCloseBuffer function
 command! HandleCloseBuffer call HandleCloseBuffer()
+
