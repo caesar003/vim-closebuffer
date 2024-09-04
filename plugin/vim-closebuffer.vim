@@ -19,9 +19,10 @@ function! IsBufferModified(buf)
   return getbufvar(a:buf, '&modified') == 1
 endfunction
 
-" Force close the specified buffer
-function! ForceCloseBuffer(buffer_number)
+" Force close the specified buffer with a message
+function! ForceCloseBuffer(buffer_number, message)
   execute 'bdelete!' a:buffer_number
+  echohl InfoMsg | echom a:message | echohl None
 endfunction
 
 " Helper function to switch to the previous buffer
@@ -36,7 +37,6 @@ function! SwitchBuffer()
   endif
 endfunction
 
-" Handle buffer close with options to save, discard, or cancel
 function! HandleCloseBuffer()
   " Define constants for user choices
   let s:SAVE_OPTION = 'y'
@@ -53,11 +53,10 @@ function! HandleCloseBuffer()
     " Close the buffer immediately since it's not modified
     if len(buffers) > 1
       call SwitchBuffer()
-      call ForceCloseBuffer('#')
-    else
-      call ForceCloseBuffer('%')
+      call ForceCloseBuffer('#', current_buf_name . " closed.")
+      return
     endif
-    echohl InfoMsg | echom current_buf_name . " closed." | echohl None
+    call ForceCloseBuffer('%', current_buf_name . " closed.")
     return
   endif
 
@@ -70,22 +69,20 @@ function! HandleCloseBuffer()
     execute 'write'
     if len(buffers) > 1
       call SwitchBuffer()
-      call ForceCloseBuffer('#')
-    else
-      call ForceCloseBuffer('%')
+      call ForceCloseBuffer('#', current_buf_name . " saved and closed.")
+      return
     endif
-    echohl InfoMsg | echom current_buf_name . " saved and closed." | echohl None
+      call ForceCloseBuffer('%', current_buf_name . " saved and closed.")
     return
   endif
 
   if tolower(choice) == s:DONT_SAVE_OPTION
     if len(buffers) > 1
       call SwitchBuffer()
-      call ForceCloseBuffer('#')
-    else
-      call ForceCloseBuffer('%')
+      call ForceCloseBuffer('#', current_buf_name . " closed without saving.")
+      return
     endif
-    echohl WarningMsg | echom current_buf_name . " closed without saving." | echohl None
+    call ForceCloseBuffer('%', current_buf_name . " closed without saving.")
     return
   endif
 
