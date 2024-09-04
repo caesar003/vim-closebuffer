@@ -31,10 +31,21 @@ function! SwitchBuffer()
   if bufnr('#') != -1
     " Switch to the alternate buffer
     execute 'buffer#'
-  else
-    " Switch to the previous buffer in the buffer list
-    execute 'bprevious'
+    return
   endif
+
+  " Switch to the previous buffer in the buffer list
+  execute 'bprevious'
+endfunction
+
+" Helper function to close a buffer after switching
+function! CloseCurrentBuffer(message)
+  if len(filter(getbufinfo(), 'v:val.listed')) > 1
+    call SwitchBuffer()
+    call ForceCloseBuffer('#', a:message)
+    return
+  endif
+  call ForceCloseBuffer('%', a:message)
 endfunction
 
 function! HandleCloseBuffer()
@@ -42,6 +53,13 @@ function! HandleCloseBuffer()
   let s:SAVE_OPTION = 'y'
   let s:DONT_SAVE_OPTION = 'n'
   let s:CANCEL_OPTION = 'c'
+
+  " Define messages and prompts
+  let s:UNSAVED_CHANGES_PROMPT = "Current buffer has unsaved changes. Do you want to save it? [y]es, [n]o, [C]ancel: "
+  let s:SAVED_AND_CLOSED_MSG = " saved and closed."
+  let s:CLOSED_WITHOUT_SAVING_MSG = " closed without saving."
+  let s:CLOSED_MSG = " closed."
+  let s:CLOSE_CANCELED_MSG = "Buffer close canceled."
 
   " Get the list of buffers and the current buffer
   let buffers = filter(getbufinfo(), 'v:val.listed')
@@ -51,43 +69,29 @@ function! HandleCloseBuffer()
   " Check if the current buffer is not modified
   if !IsBufferModified(current_buf)
     " Close the buffer immediately since it's not modified
-    if len(buffers) > 1
-      call SwitchBuffer()
-      call ForceCloseBuffer('#', current_buf_name . " closed.")
-      return
-    endif
-    call ForceCloseBuffer('%', current_buf_name . " closed.")
+    call CloseCurrentBuffer(current_buf_name . s:CLOSED_MSG)
     return
   endif
 
   " Prompt the user if the buffer has unsaved changes
-  echo "Current buffer has unsaved changes. Do you want to save it? [y]es, [n]o, [C]ancel: "
+  echo s:UNSAVED_CHANGES_PROMPT
   let choice = nr2char(getchar())
 
   if tolower(choice) == s:SAVE_OPTION
-    " Save the buffer
+    " Save the buffer and close it
     execute 'write'
-    if len(buffers) > 1
-      call SwitchBuffer()
-      call ForceCloseBuffer('#', current_buf_name . " saved and closed.")
-      return
-    endif
-      call ForceCloseBuffer('%', current_buf_name . " saved and closed.")
+    call CloseCurrentBuffer(current_buf_name . s:SAVED_AND_CLOSED_MSG)
     return
   endif
 
   if tolower(choice) == s:DONT_SAVE_OPTION
-    if len(buffers) > 1
-      call SwitchBuffer()
-      call ForceCloseBuffer('#', current_buf_name . " closed without saving.")
-      return
-    endif
-    call ForceCloseBuffer('%', current_buf_name . " closed without saving.")
+    " Discard the changes and close the buffer
+    call CloseCurrentBuffer(current_buf_name . s:CLOSED_WITHOUT_SAVING_MSG)
     return
   endif
 
   " If user chooses to cancel
-  echohl InfoMsg | echom "Buffer close canceled." | echohl None
+  echohl InfoMsg | echom s:CLOSE_CANCELED_MSG | echohl None
 endfunction
 
 " Create a Vim command to trigger the HandleCloseBuffer function
