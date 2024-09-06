@@ -15,30 +15,37 @@
 "
 
 " Check if a buffer is modified
+" {{{ IsBufferModified
 function! IsBufferModified(buf)
   return getbufvar(a:buf, '&modified') == 1
 endfunction
+" }}}
 
 " Force close the specified buffer with a message
+" {{{ ForceCloseBuffer
 function! ForceCloseBuffer(buffer_number, message)
   execute 'bdelete!' a:buffer_number
   echohl InfoMsg | echom a:message | echohl None
 endfunction
+" }}}
 
 " Helper function to switch to the previous buffer
+" {{{ SwitchBuffer
 function! SwitchBuffer()
   " Check if the alternate buffer exists
-  if bufnr('#') != -1
-    " Switch to the alternate buffer
-    execute 'buffer#'
-    return
-  endif
+  " if bufnr('#') != -1
+  "   " Switch to the alternate buffer
+  "   execute 'buffer#'
+  "   return
+  " endif
 
   " Switch to the previous buffer in the buffer list
   execute 'bprevious'
 endfunction
+" }}}
 
 " Helper function to close a buffer after switching
+" {{{ CloseCurrentBuffer
 function! CloseCurrentBuffer(message)
   if len(filter(getbufinfo(), 'v:val.listed')) > 1
     call SwitchBuffer()
@@ -47,7 +54,9 @@ function! CloseCurrentBuffer(message)
   endif
   call ForceCloseBuffer('%', a:message)
 endfunction
+" }}}
 
+" {{{ HandleCloseBuffer
 function! HandleCloseBuffer()
   " Define constants for user choices
   let s:SAVE_OPTION = 'y'
@@ -67,32 +76,41 @@ function! HandleCloseBuffer()
   let current_buf_name = bufname(current_buf) != '' ? bufname(current_buf) : '[Unnamed]'
 
   " Check if the current buffer is not modified
+  " {{{ Buffer has no unsaved changes
   if !IsBufferModified(current_buf)
     " Close the buffer immediately since it's not modified
     call CloseCurrentBuffer(current_buf_name . s:CLOSED_MSG)
     return
   endif
+  " }}}
 
   " Prompt the user if the buffer has unsaved changes
+  " {{{ Buffer has unsaved changes
   echo s:UNSAVED_CHANGES_PROMPT
   let choice = nr2char(getchar())
 
+  " {{{ Save and close
   if tolower(choice) == s:SAVE_OPTION
     " Save the buffer and close it
     execute 'write'
     call CloseCurrentBuffer(current_buf_name . s:SAVED_AND_CLOSED_MSG)
     return
   endif
+  " }}}
 
+  " {{{ Discard and close
   if tolower(choice) == s:DONT_SAVE_OPTION
     " Discard the changes and close the buffer
     call CloseCurrentBuffer(current_buf_name . s:CLOSED_WITHOUT_SAVING_MSG)
     return
   endif
+  " }}}
 
   " If user chooses to cancel
   echohl InfoMsg | echom s:CLOSE_CANCELED_MSG | echohl None
+  " }}}
 endfunction
+" }}}
 
 " Create a Vim command to trigger the HandleCloseBuffer function
 command! HandleCloseBuffer call HandleCloseBuffer()
