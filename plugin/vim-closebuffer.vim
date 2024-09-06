@@ -32,18 +32,14 @@ endfunction
 " Helper function to switch to the previous buffer
 " {{{ SwitchBuffer
 function! SwitchBuffer()
-  " Get the buffer number of the alternate buffer
-  let l:alt_bufnr = bufnr('#')
-  
-  " Check if the alternate buffer exists and is valid
-  if l:alt_bufnr != -1 && bufexists(l:alt_bufnr)
+  " Check if the alternate buffer exists and is loaded
+  if bufnr('#') != -1 && bufloaded(bufnr('#'))
     " Switch to the alternate buffer
-    execute 'buffer ' . l:alt_bufnr
-    return
+    execute 'buffer#'
+  else
+    " Switch to the previous buffer in the buffer list
+    execute 'bprevious'
   endif
-
-  " If the alternate buffer is not valid, switch to the previous buffer
-  execute 'bprevious'
 endfunction
 " }}}
 
