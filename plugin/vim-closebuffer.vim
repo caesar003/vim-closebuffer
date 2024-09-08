@@ -1,29 +1,32 @@
-" HandleBufferClose
-" I feel it pretty annoying that everytime I do :bd, that action doesn't only
-" destroys my current active buffer but it also ruins my split windows
+" Vim-CloseBuffer Plugin
+" Author: Caesar003
+" Email: caesarmuksid@gmail.com
+" Repo: https://github.com/caesar003/vim-closebuffer
+" Last Modified: 2024-09-09
 "
-" the fix is actually pretty straighforward, by knowing that split will be
-" untouched if the buffer we're attempting to close is not the active one, so
-" we'll good simply by doing :b# (or :bn, :bp, and any other buffer switch
-" command) followed by :bd# to delete that previously active buffer
+" Description:
+" I find it frustrating that `:bd` not only destroys the current active buffer
+" but also disrupts split windows. This plugin fixes that by switching to 
+" another buffer before closing the current one. 
 "
+" The plugin also checks for unsaved modified buffers and prompts the user 
+" to save, discard, or cancel the buffer close operation.
 "
-" And this plugin simply does that, move it to another buffer and close that
-" buffer (previously active one)
-"
-" Beside that, I also implement convenient check for unsaved modified buffers 
-"
+" Usage:
+" - Call `:CloseBuffer` to safely close the current buffer.
+" - Handles unsaved buffers with a user prompt.
+
 
 " Check if a buffer is modified
 " {{{ IsBufferModified
-function! IsBufferModified(buf)
+function! s:IsBufferModified(buf)
   return getbufvar(a:buf, '&modified') == 1
 endfunction
 " }}}
 
 " Force close the specified buffer with a message
 " {{{ ForceCloseBuffer
-function! ForceCloseBuffer(buffer_number, message)
+function! s:ForceCloseBuffer(buffer_number, message)
   execute 'bdelete!' a:buffer_number
   echohl InfoMsg | echom a:message | echohl None
 endfunction
@@ -31,32 +34,32 @@ endfunction
 
 " Helper function to switch to the previous buffer
 " {{{ SwitchBuffer
-function! SwitchBuffer()
+function! s:SwitchBuffer()
   " Check if the alternate buffer exists and is loaded
   if bufnr('#') != -1 && bufloaded(bufnr('#'))
     " Switch to the alternate buffer
     execute 'buffer#'
-  else
-    " Switch to the previous buffer in the buffer list
-    execute 'bprevious'
+    return
   endif
+  " Switch to the previous buffer in the buffer list
+  execute 'bprevious'
 endfunction
 " }}}
 
 " Helper function to close a buffer after switching
 " {{{ CloseCurrentBuffer
-function! CloseCurrentBuffer(message)
+function! s:CloseCurrentBuffer(message)
   if len(filter(getbufinfo(), 'v:val.listed')) > 1
-    call SwitchBuffer()
-    call ForceCloseBuffer('#', a:message)
+    call s:SwitchBuffer()
+    call s:ForceCloseBuffer('#', a:message)
     return
   endif
-  call ForceCloseBuffer('%', a:message)
+  call s:ForceCloseBuffer('%', a:message)
 endfunction
 " }}}
 
-" {{{ HandleCloseBuffer
-function! HandleCloseBuffer()
+" {{{ CloseBuffer
+function! CloseBuffer()
   " Define constants for user choices
   let s:SAVE_OPTION = 'y'
   let s:DONT_SAVE_OPTION = 'n'
@@ -76,9 +79,9 @@ function! HandleCloseBuffer()
 
   " Check if the current buffer is not modified
   " {{{ Buffer has no unsaved changes
-  if !IsBufferModified(current_buf)
+  if !s:IsBufferModified(current_buf)
     " Close the buffer immediately since it's not modified
-    call CloseCurrentBuffer(current_buf_name . s:CLOSED_MSG)
+    call s:CloseCurrentBuffer(current_buf_name . s:CLOSED_MSG)
     return
   endif
   " }}}
@@ -92,7 +95,7 @@ function! HandleCloseBuffer()
   if tolower(choice) == s:SAVE_OPTION
     " Save the buffer and close it
     execute 'write'
-    call CloseCurrentBuffer(current_buf_name . s:SAVED_AND_CLOSED_MSG)
+    call s:CloseCurrentBuffer(current_buf_name . s:SAVED_AND_CLOSED_MSG)
     return
   endif
   " }}}
@@ -100,7 +103,7 @@ function! HandleCloseBuffer()
   " {{{ Discard and close
   if tolower(choice) == s:DONT_SAVE_OPTION
     " Discard the changes and close the buffer
-    call CloseCurrentBuffer(current_buf_name . s:CLOSED_WITHOUT_SAVING_MSG)
+    call s:CloseCurrentBuffer(current_buf_name . s:CLOSED_WITHOUT_SAVING_MSG)
     return
   endif
   " }}}
@@ -111,6 +114,6 @@ function! HandleCloseBuffer()
 endfunction
 " }}}
 
-" Create a Vim command to trigger the HandleCloseBuffer function
-command! HandleCloseBuffer call HandleCloseBuffer()
+" Create a command to trigger the CloseBuffer function
+command! CloseBuffer call CloseBuffer()
 

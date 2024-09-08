@@ -1,5 +1,14 @@
 # Vim CloseBuffer
 
+```
+        _                      __                __          ________         
+ _   __(_)___ ___        _____/ /___  ________  / /_  __  __/ __/ __/__  _____
+| | / / / __ `__ \______/ ___/ / __ \/ ___/ _ \/ __ \/ / / / /_/ /_/ _ \/ ___/
+| |/ / / / / / / /_____/ /__/ / /_/ (__  )  __/ /_/ / /_/ / __/ __/  __/ /    
+|___/_/_/ /_/ /_/      \___/_/\____/____/\___/_.___/\__,_/_/ /_/  \___/_/     
+                                                                              
+```
+
 ## Overview
 
 Have you ever been frustrated by Vim's behavior when closing buffers, where your carefully arranged split window layout gets ruined? You’re not alone. **Vim CloseBuffer** is a plugin designed to help you close buffers without disrupting your window layout, making your Vim experience smoother and more efficient.
@@ -27,7 +36,7 @@ Alternatively, if you’re using a different plugin manager like [lazy.nvim](htt
 Here’s how you might add it with lazy.nvim:
 
 ```lua
- {
+{
   -- other plugins
   { 'caesar003/vim-closebuffer' },
 }
@@ -38,7 +47,7 @@ Here’s how you might add it with lazy.nvim:
 After installing the plugin, you can use the following command to safely close your buffers:
 
 ```vim
-:HandleCloseBuffer
+:CloseBuffer
 ```
 
 This command provides an interactive prompt if there are unsaved changes, allowing you to save, discard, or cancel the close operation. It ensures that your split layout remains intact, no matter how you choose to handle the buffer.
@@ -48,7 +57,7 @@ This command provides an interactive prompt if there are unsaved changes, allowi
 You are free to define convenient mappings to make using the plugin even easier. For example:
 
 ```vim
-nnoremap <leader>c :HandleCloseBuffer<cr>
+nnoremap <leader>c :CloseBuffer<cr>
 ```
 
 Feel free to customize the mapping to fit your preferred keybindings.
