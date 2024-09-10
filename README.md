@@ -31,7 +31,7 @@ Then, install the plugin by running:
 :PlugInstall
 ```
 
-Alternatively, if you’re using a different plugin manager like [lazy.nvim](https://github.com/folke/lazy.nvim), [Vundle](https://github.com/wbthomason/packer.nvim), or [packer.nvim](https://github.com/VundleVim/Vundle.vim), refer to its specific documentation to install the plugin.
+Alternatively, if you’re using a different plugin manager like [lazy.nvim](https://github.com/folke/lazy.nvim), [Vundle](https://github.com/VundleVim/Vundle.vim), or [Packer](https://github.com/wbthomason/packer.nvim), refer to its specific documentation to install the plugin.
 
 Here’s how you might add it with lazy.nvim:
 
