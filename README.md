@@ -1,12 +1,12 @@
 # Vim CloseBuffer
 
 ```
-        _                      __                __          ________         
+        _                      __                __          ________
  _   __(_)___ ___        _____/ /___  ________  / /_  __  __/ __/ __/__  _____
 | | / / / __ `__ \______/ ___/ / __ \/ ___/ _ \/ __ \/ / / / /_/ /_/ _ \/ ___/
-| |/ / / / / / / /_____/ /__/ / /_/ (__  )  __/ /_/ / /_/ / __/ __/  __/ /    
-|___/_/_/ /_/ /_/      \___/_/\____/____/\___/_.___/\__,_/_/ /_/  \___/_/     
-                                                                              
+| |/ / / / / / / /_____/ /__/ / /_/ (__  )  __/ /_/ / /_/ / __/ __/  __/ /
+|___/_/_/ /_/ /_/      \___/_/\____/____/\___/_.___/\__,_/_/ /_/  \___/_/
+
 ```
 
 ## Overview
@@ -36,7 +36,7 @@ Alternatively, if you’re using a different plugin manager like [lazy.nvim](htt
 Here’s how you might add it with lazy.nvim:
 
 ```lua
-{
+return {
   -- other plugins
   { 'caesar003/vim-closebuffer' },
 }
@@ -58,6 +58,20 @@ You are free to define convenient mappings to make using the plugin even easier.
 
 ```vim
 nnoremap <leader>c :CloseBuffer<cr>
+```
+
+Or with lazy.nvim
+
+```lua
+return {
+  -- other plugins
+  {
+    "caesar003/vim-closebuffer",
+    config = function()
+      vim.api.nvim_set_keymap("n", "<leader>c", ":CloseBuffer<CR>", { noremap = true, silent = true, desc = "Delete Buffer" })
+    end,
+  },
+}
 ```
 
 Feel free to customize the mapping to fit your preferred keybindings.

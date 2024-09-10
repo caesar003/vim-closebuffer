@@ -92,32 +92,32 @@ function! CloseBuffer()
   echo s:UNSAVED_CHANGES_PROMPT
   let choice = nr2char(getchar())
 
-" {{{ Save and close
-if tolower(choice) == s:SAVE_OPTION
-  " Check if the buffer is unnamed
-  if current_buf_name == '[Unnamed]'
-    " Prompt for a file name
-    echo s:ENTER_FILE_NAME_PROMPT
-    let file_name = input('')
+  " {{{ Save and close
+  if tolower(choice) == s:SAVE_OPTION
+    " Check if the buffer is unnamed
+    if current_buf_name == '[Unnamed]'
+      " Prompt for a file name
+      echo s:ENTER_FILE_NAME_PROMPT
+      let file_name = input('')
 
-    " If user provides a file name, save and close
-    if file_name != ''
-      execute 'write ' . file_name
-      call s:CloseCurrentBuffer(file_name . s:SAVED_AND_CLOSED_MSG)
+      " If user provides a file name, save and close
+      if file_name != ''
+        execute 'write ' . file_name
+        call s:CloseCurrentBuffer(file_name . s:SAVED_AND_CLOSED_MSG)
+        return
+      endif
+
+      " If no name is given, discard changes and close
+      call s:CloseCurrentBuffer(current_buf_name . s:CLOSED_WITHOUT_SAVING_MSG)
       return
     endif
 
-    " If no name is given, discard changes and close
-    call s:CloseCurrentBuffer(current_buf_name . s:CLOSED_WITHOUT_SAVING_MSG)
+    " Save the named buffer and close it
+    execute 'write'
+    call s:CloseCurrentBuffer(current_buf_name . s:SAVED_AND_CLOSED_MSG)
     return
   endif
-
-  " Save the named buffer and close it
-  execute 'write'
-  call s:CloseCurrentBuffer(current_buf_name . s:SAVED_AND_CLOSED_MSG)
-  return
-endif
-" }}}
+  " }}}
 
   " {{{ Discard and close
   if tolower(choice) == s:DONT_SAVE_OPTION
