@@ -1,0 +1,107 @@
+*closeBuffer.txt*  For Vim version 8.0+  Last change: 2025 March 10
+
+                    CLOSEBUFFER PLUGIN REFERENCE MANUAL                 *closeBuffer*
+
+==============================================================================
+CONTENTS                                                  *closeBuffer-contents*
+
+    1. Introduction ............................ |closeBuffer-intro|
+    2. Commands ................................ |closeBuffer-commands|
+    3. Mappings ................................ |closeBuffer-mappings|
+    4. Configuration ........................... |closeBuffer-config|
+    5. Examples ................................ |closeBuffer-examples|
+    6. Troubleshooting ......................... |closeBuffer-troubleshooting|
+    7. About ................................... |closeBuffer-about|
+
+==============================================================================
+1. Introduction                                               *closeBuffer-intro*
+
+The CloseBuffer plugin provides an improved buffer closing mechanism that
+preserves split windows, unlike Vim's standard ':bd' command. It intelligently
+switches to another buffer before closing the current one.
+
+The plugin also handles unsaved changes by prompting the user to save,
+discard, or cancel the buffer close operation.
+
+==============================================================================
+2. Commands                                                *closeBuffer-commands*
+
+                                                                  *:CloseBuffer*
+:CloseBuffer [N1 N2 ...]
+        Close the specified buffer(s). If no buffer numbers are provided,
+        closes the current buffer.
+
+        Examples: >
+            :CloseBuffer       " Close the current buffer
+            :CloseBuffer 3     " Close buffer #3
+            :CloseBuffer 1 4 7 " Close buffers #1, #4, and #7
+<
+                                                      *:CloseBufferExceptCurrent*
+:CloseBufferExceptCurrent
+        Close all buffers except the current one. This is useful for quickly
+        cleaning up your buffer list while preserving your current work.
+
+==============================================================================
+3. Mappings                                                *closeBuffer-mappings*
+
+CloseBuffer doesn't define any mappings by default, but here are some 
+recommended mappings you can add to your vimrc: >
+
+    " Close current buffer
+    nnoremap <Leader>x :CloseBuffer<CR>
+
+    " Close all buffers except current
+    nnoremap <Leader>X :CloseBufferExceptCurrent<CR>
+<
+==============================================================================
+4. Configuration                                             *closeBuffer-config*
+
+The following variables can be set in your vimrc to customize CloseBuffer:
+
+*g:close_buffer_quiet*
+        Set to 1 to disable status messages.
+        Default: 0 >
+            let g:close_buffer_quiet = 1
+<
+*g:close_buffer_no_confirm*
+        Set to 1 to disable confirmation for unmodified buffers.
+        Default: 0 >
+            let g:close_buffer_no_confirm = 1
+<
+==============================================================================
+5. Examples                                               *closeBuffer-examples*
+
+Using CloseBuffer with arglist: >
+    :args *.vim
+    :argdo CloseBuffer
+<
+Close all buffers that match a pattern: >
+    :bufdo if bufname('%') =~ 'test_' | CloseBuffer | endif
+<
+Close and save all modified buffers: >
+    :bufdo if &modified | write | CloseBuffer | endif
+<
+==============================================================================
+6. Troubleshooting                                  *closeBuffer-troubleshooting*
+
+Q: CloseBuffer is not preserving my split windows
+A: Make sure you're using `:CloseBuffer` and not Vim's built-in `:bd` command.
+
+Q: I'm getting "E37: No write since last change" errors
+A: The plugin should be handling modified buffers. If you're seeing this error,
+   please report it as a bug with steps to reproduce.
+
+Q: The plugin is not switching to the expected buffer
+A: The plugin tries to switch to the alternate buffer (#) first, then the
+   previous buffer in the list. If you need specific buffer switching logic,
+   consider contributing to the project.
+
+==============================================================================
+7. About                                                     *closeBuffer-about*
+
+Author:     Caesar003
+Repository: https://github.com/caesar003/vim-closebuffer
+Version:    2.0.0
+License:    Same as Vim (see |license|)
+
+ vim:tw=78:ts=8:ft=help:norl:
