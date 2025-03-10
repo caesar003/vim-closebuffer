@@ -166,7 +166,7 @@ function! s:HandleModifiedBuffer(buffer_number)
   
   echo s:UNSAVED_CHANGES_PROMPT
   let choice = nr2char(getchar())
-  echo "\n"  " Clear the prompt line
+  echo "\n" 
   
   if tolower(choice) == s:SAVE_OPTION
     " Save and close
