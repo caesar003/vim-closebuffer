@@ -2,7 +2,7 @@
 " Author: Caesar003
 " Email: caesarmuksid@gmail.com
 " Repo: https://github.com/caesar003/vim-closebuffer
-" Last Modified: 2024-09-09
+" Last Modified: 2026-07-22
 "
 " Description:
 " This plugin provides an improved buffer closing mechanism that preserves
@@ -19,16 +19,20 @@
 " nnoremap <Leader>X :CloseBufferExceptCurrent<CR>
 "
 " Configuration:
-" let g:close_buffer_no_confirm = 0  " Set to 1 to disable confirmation for unmodified buffers
+" let g:close_buffer_no_confirm = 0  " Set to 1 to force-close modified buffers without prompting
 " let g:close_buffer_quiet = 0       " Set to 1 to disable messages
 
 " Constants for user choices
 let s:SAVE_OPTION = 'y'
 let s:DONT_SAVE_OPTION = 'n'
 let s:CANCEL_OPTION = 'c'
+let s:ALL_OPTION = 'a'
+
+" Batch choice for "apply to all" during batch close operations
+let s:batch_choice = ''
 
 " Constants for messages and prompts
-let s:UNSAVED_CHANGES_PROMPT = "Current buffer has unsaved changes. Do you want to save it? [y]es, [n]o, [C]ancel: "
+let s:UNSAVED_CHANGES_PROMPT = " has unsaved changes. [y]es, [n]o, a[ll], [c]ancel: "
 let s:ENTER_FILE_NAME_PROMPT = "Enter a name for the new file (leave blank to discard changes): "
 let s:SAVED_AND_CLOSED_MSG = " saved and closed."
 let s:CLOSED_WITHOUT_SAVING_MSG = " closed without saving."
@@ -114,7 +118,7 @@ function! s:CloseCurrentBuffer(buffer_number, message)
       call s:ForceCloseBuffer(a:buffer_number, a:message)
     else
       " Last buffer, create a new empty one before closing
-      enew
+      enew!
       call s:ForceCloseBuffer(a:buffer_number, a:message)
     endif
   else
@@ -147,9 +151,11 @@ function! s:HandleBufferClose(buffer_number)
     let current_buf = bufnr('%')
     execute 'buffer ' . a:buffer_number
     let result = s:HandleModifiedBuffer(a:buffer_number)
-    " Switch back if we didn't close the buffer
+    " Switch back if we didn't close the buffer. Use 'buffer!' since the
+    " target buffer may still be modified (e.g. a failed save); force-
+    " switching preserves its unsaved content.
     if result == 0 && bufexists(a:buffer_number)
-      execute 'buffer ' . current_buf
+      execute 'buffer! ' . current_buf
     endif
     return
   endif
@@ -159,44 +165,78 @@ function! s:HandleBufferClose(buffer_number)
 endfunction
 " }}}
 
+" Save a buffer, prompting for a name if it's unnamed, then close it.
+" Returns 1 when the buffer was closed, 0 when saving failed or was skipped.
+" a:prompt_for_name enables the file-name prompt for unnamed buffers; when
+" disabled (batch "save all"), unnamed buffers are left open with an error
+" message instead of being force-closed (to avoid silent data loss).
+" {{{
+function! s:SaveAndCloseBuffer(buffer_number, prompt_for_name)
+  let buffer_name = bufname(a:buffer_number) != '' ? bufname(a:buffer_number) : '[Unnamed]'
+
+  if buffer_name == '[Unnamed]'
+    if !a:prompt_for_name
+      call s:EchoMsg('Cannot save unnamed buffer ' . a:buffer_number . '; leaving it open.', 'ErrorMsg')
+      return 0
+    endif
+
+    echo s:ENTER_FILE_NAME_PROMPT
+    let file_name = input('')
+
+    if file_name != ''
+      try
+        execute 'write ' . file_name
+        call s:CloseCurrentBuffer(a:buffer_number, file_name . s:SAVED_AND_CLOSED_MSG)
+        return 1
+      catch
+        call s:EchoMsg('Error saving file: ' . v:exception, 'ErrorMsg')
+        return 0
+      endtry
+    endif
+
+    call s:CloseCurrentBuffer(a:buffer_number, buffer_name . s:CLOSED_WITHOUT_SAVING_MSG)
+    return 1
+  endif
+
+  try
+    execute 'write'
+    call s:CloseCurrentBuffer(a:buffer_number, buffer_name . s:SAVED_AND_CLOSED_MSG)
+    return 1
+  catch
+    call s:EchoMsg('Error saving file: ' . v:exception, 'ErrorMsg')
+    return 0
+  endtry
+endfunction
+" }}}
+
 " Handle a modified buffer
 " {{{
 function! s:HandleModifiedBuffer(buffer_number)
   let buffer_name = bufname(a:buffer_number) != '' ? bufname(a:buffer_number) : '[Unnamed]'
-  
-  echo s:UNSAVED_CHANGES_PROMPT
+
+  " g:close_buffer_no_confirm — force-close without prompting
+  if exists('g:close_buffer_no_confirm') && g:close_buffer_no_confirm == 1
+    call s:CloseCurrentBuffer(a:buffer_number, buffer_name . s:CLOSED_WITHOUT_SAVING_MSG)
+    return 1
+  endif
+
+  " s:batch_choice — apply the saved choice from a previous "all" response
+  if s:batch_choice == s:SAVE_OPTION
+    return s:SaveAndCloseBuffer(a:buffer_number, 0)
+  elseif s:batch_choice == s:DONT_SAVE_OPTION
+    call s:CloseCurrentBuffer(a:buffer_number, buffer_name . s:CLOSED_WITHOUT_SAVING_MSG)
+    return 1
+  endif
+
+  echo buffer_name . s:UNSAVED_CHANGES_PROMPT
   let choice = nr2char(getchar())
-  echo "\n" 
-  
-  if tolower(choice) == s:SAVE_OPTION
-    " Save and close
-    if buffer_name == '[Unnamed]'
-      echo s:ENTER_FILE_NAME_PROMPT
-      let file_name = input('')
-      
-      if file_name != ''
-        try
-          execute 'write ' . file_name
-          call s:CloseCurrentBuffer(a:buffer_number, file_name . s:SAVED_AND_CLOSED_MSG)
-          return 1
-        catch
-          call s:EchoMsg('Error saving file: ' . v:exception, 'ErrorMsg')
-          return 0
-        endtry
-      endif
-      
-      call s:CloseCurrentBuffer(a:buffer_number, buffer_name . s:CLOSED_WITHOUT_SAVING_MSG)
-      return 1
+  echo "\n"
+
+  if tolower(choice) == s:SAVE_OPTION || tolower(choice) == s:ALL_OPTION
+    if tolower(choice) == s:ALL_OPTION
+      let s:batch_choice = s:SAVE_OPTION
     endif
-    
-    try
-      execute 'write'
-      call s:CloseCurrentBuffer(a:buffer_number, buffer_name . s:SAVED_AND_CLOSED_MSG)
-      return 1
-    catch
-      call s:EchoMsg('Error saving file: ' . v:exception, 'ErrorMsg')
-      return 0
-    endtry
+    return s:SaveAndCloseBuffer(a:buffer_number, 1)
   elseif tolower(choice) == s:DONT_SAVE_OPTION
     " Close without saving
     call s:CloseCurrentBuffer(a:buffer_number, buffer_name . s:CLOSED_WITHOUT_SAVING_MSG)
@@ -212,6 +252,7 @@ endfunction
 " Main function to close buffer(s)
 " {{{
 function! CloseBuffer(...)
+  let s:batch_choice = ''
   " Process arguments
   if a:0 > 0
     " Close specific buffer numbers provided as arguments
@@ -228,6 +269,7 @@ endfunction
 " Function to close all buffers except the current one
 " {{{
 function! CloseBufferExceptCurrent()
+  let s:batch_choice = ''
   let current = bufnr('%')
   let buffers = filter(range(1, bufnr('$')), 'buflisted(v:val) && v:val != current')
   

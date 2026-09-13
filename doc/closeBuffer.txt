@@ -1,4 +1,4 @@
-*closeBuffer.txt*  For Vim version 8.0+  Last change: 2025 March 10
+*closeBuffer.txt*  For Vim version 8.0+  Last change: 2026 July 22
 
                     CLOSEBUFFER PLUGIN REFERENCE MANUAL                 *closeBuffer*
 
@@ -44,6 +44,22 @@ discard, or cancel the buffer close operation.
 ==============================================================================
 3. Mappings                                                *closeBuffer-mappings*
 
+Interactive Prompt
+        When closing a modified buffer, CloseBuffer prompts:
+        >
+            [y]es, [n]o, a[ll], [c]ancel
+<
+        - y — Save and close the buffer
+        - n — Close without saving
+        - a — Save this buffer and all remaining modified buffers
+              without further prompting (useful with |:CloseBufferExceptCurrent|)
+        - c — Cancel the close operation
+
+        If 'a' is used on an unnamed ([No Name]) modified buffer, CloseBuffer
+        prompts for a filename. Unnamed modified buffers encountered later in
+        the same save-all batch cannot be saved; they are left open with an
+        error message instead of being force-closed, so no data is lost.
+
 CloseBuffer doesn't define any mappings by default, but here are some 
 recommended mappings you can add to your vimrc: >
 
@@ -64,7 +80,8 @@ The following variables can be set in your vimrc to customize CloseBuffer:
             let g:close_buffer_quiet = 1
 <
 *g:close_buffer_no_confirm*
-        Set to 1 to disable confirmation for unmodified buffers.
+        Set to 1 to force-close modified buffers without prompting.
+        When enabled, modified buffers are discarded silently (like :bd!).
         Default: 0 >
             let g:close_buffer_no_confirm = 1
 <
@@ -101,7 +118,7 @@ A: The plugin tries to switch to the alternate buffer (#) first, then the
 
 Author:     Caesar003
 Repository: https://github.com/caesar003/vim-closebuffer
-Version:    2.0.0
+Version:    2.1.0
 License:    Same as Vim (see |license|)
 
  vim:tw=78:ts=8:ft=help:norl:

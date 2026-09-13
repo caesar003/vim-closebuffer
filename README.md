@@ -64,7 +64,24 @@ After installing the plugin, you can use the following commands:
 :CloseBufferExceptCurrent
 ```
 
-These commands provide interactive prompts if there are unsaved changes, allowing you to save, discard, or cancel the close operation. They ensure that your split layout remains intact, no matter how you choose to handle the buffer.
+When a modified buffer is encountered, you'll be prompted:
+
+```
+<filename> has unsaved changes. [y]es, [n]o, a[ll], [c]ancel:
+```
+
+- **y** — Save and close
+- **n** — Close without saving
+- **a** — Save this and all remaining modified buffers without further prompting
+- **c** — Cancel
+
+If you find yourself frequently closing many modified buffers at once (e.g., with `:CloseBufferExceptCurrent`), the `[a]` option lets you answer "yes to all" in one keystroke.
+
+Note: unnamed (`[No Name]`) modified buffers can't be saved automatically. Choosing `[a]` on one prompts for a filename; unnamed buffers encountered *later* in the same batch are left open with an error message instead of being force-closed, so no data is ever silently lost.
+
+You can also set `g:close_buffer_no_confirm = 1` to skip prompts entirely and force-close all modified buffers.
+
+These commands ensure that your split layout remains intact, no matter how you choose to handle the buffer.
 
 ## Custom Mappings
 
@@ -103,7 +120,7 @@ You can customize the plugin's behavior with these global variables:
 " Disable status messages
 let g:close_buffer_quiet = 1
 
-" Disable confirmation for unmodified buffers
+" Force-close modified buffers without prompting (like :bd!)
 let g:close_buffer_no_confirm = 1
 ```
 
